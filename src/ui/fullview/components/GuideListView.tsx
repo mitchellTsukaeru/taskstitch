@@ -2,6 +2,7 @@ import { RotateCcw, Star, Trash2 } from 'lucide-react';
 import { i18n } from '#imports';
 import { formatDate } from '@/lib/utils';
 import { useFullview } from '@/stores/fullview';
+import { GuideImpactBadge } from '@/ui/shared/GuideImpact';
 import { navigate } from '../router';
 
 interface GuideListViewProps {
@@ -25,7 +26,10 @@ export default function GuideListView({ category, onStar, onTrash, onRestore, on
           style={{ borderBottom: idx < guides.length - 1 ? '1px solid var(--color-border)' : undefined }}
         >
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate text-foreground">{guide.title}</p>
+            <div className="flex items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-medium text-foreground">{guide.title}</p>
+              <GuideImpactBadge impact={guide.impact} compact />
+            </div>
             <p className="text-xs mt-0.5 text-muted-foreground">
               {guide.stepIds.length !== 1
                 ? i18n.t('fullview_stepCountPlural', [String(guide.stepIds.length)])

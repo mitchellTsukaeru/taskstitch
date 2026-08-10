@@ -30,6 +30,8 @@ interface FullviewStore {
   setGuideStepCount: (count: number) => void;
   guideExportData: GuideExportData | null;
   setGuideExportData: (data: GuideExportData | null) => void;
+  guideImpactOpen: boolean;
+  setGuideImpactOpen: (open: boolean) => void;
   scrollToStepId: string | null;
   scrollToStep: (stepId: string) => void;
   activeStepId: string | null;
@@ -57,6 +59,8 @@ export const useFullviewStore = create<FullviewStore>((set) => ({
   setGuideStepCount: (guideStepCount) => set({ guideStepCount }),
   guideExportData: null,
   setGuideExportData: (guideExportData) => set({ guideExportData }),
+  guideImpactOpen: false,
+  setGuideImpactOpen: (guideImpactOpen) => set({ guideImpactOpen }),
   scrollToStepId: null,
   scrollToStep: (stepId) => {
     set({ scrollToStepId: stepId });

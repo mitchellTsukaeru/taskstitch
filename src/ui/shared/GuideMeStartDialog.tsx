@@ -10,11 +10,13 @@ export function GuideMeStartDialog({
   onClose,
   onStarted,
   onBeforeStart,
+  onClassify,
 }: {
   guide: Guide;
   onClose: () => void;
   onStarted: () => void;
   onBeforeStart?: () => void;
+  onClassify?: () => void;
 }) {
   const impact = guideImpact(guide.impact);
   const [confirmed, setConfirmed] = useState(false);
@@ -51,6 +53,15 @@ export function GuideMeStartDialog({
             </div>
             <p className="mt-2 text-xs leading-relaxed">{impact.description}</p>
             {guide.impactNote && <p className="mt-2 border-t border-current/15 pt-2 text-xs">{guide.impactNote}</p>}
+            {impact.value === 'unknown' && onClassify && (
+              <button
+                type="button"
+                onClick={onClassify}
+                className="mt-3 text-xs font-bold underline underline-offset-2 hover:no-underline"
+              >
+                Classify this guide
+              </button>
+            )}
           </div>
           <p className="text-xs leading-relaxed text-muted-foreground">
             TaskStitch does not verify the effect of a website action. Check the target system, account, and values

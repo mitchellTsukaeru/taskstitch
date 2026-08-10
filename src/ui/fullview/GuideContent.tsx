@@ -19,6 +19,7 @@ import { sendMessage } from '@/lib/messaging';
 import { formatDate, getMostCommonDomain } from '@/lib/utils';
 import { useFullview } from '@/stores/fullview';
 import FaviconImg from '@/ui/shared/FaviconImg';
+import { GuideImpactBadge, GuideImpactDialog } from '@/ui/shared/GuideImpact';
 import { GuideMeStartDialog } from '@/ui/shared/GuideMeStartDialog';
 import { ImproveGuideDialog } from '@/ui/shared/ImproveGuideDialog';
 import { ManualStepDialog } from '@/ui/shared/ManualStepDialog';
@@ -37,11 +38,15 @@ interface GuideData {
 }
 
 export default function GuideContent({ guideId }: GuideContentProps) {
-  const { setGuideTitle, setGuideStepCount, setGuideExportData } = useFullview((s) => ({
-    setGuideTitle: s.setGuideTitle,
-    setGuideStepCount: s.setGuideStepCount,
-    setGuideExportData: s.setGuideExportData,
-  }));
+  const { setGuideTitle, setGuideStepCount, setGuideExportData, guideImpactOpen, setGuideImpactOpen } = useFullview(
+    (s) => ({
+      setGuideTitle: s.setGuideTitle,
+      setGuideStepCount: s.setGuideStepCount,
+      setGuideExportData: s.setGuideExportData,
+      guideImpactOpen: s.guideImpactOpen,
+      setGuideImpactOpen: s.setGuideImpactOpen,
+    }),
+  );
 
   const [data, setData] = useState<GuideData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +87,8 @@ export default function GuideContent({ guideId }: GuideContentProps) {
     loadGuide();
     return onGuidesChanged(() => loadGuide());
   }, [loadGuide]);
+
+  useEffect(() => () => setGuideImpactOpen(false), [setGuideImpactOpen]);
 
   const handleTitleBlur = useCallback(async () => {
     if (!data || title === data.guide.title) return;
@@ -191,10 +198,25 @@ export default function GuideContent({ guideId }: GuideContentProps) {
         <GuideMeStartDialog
           guide={data.guide}
           onClose={() => setGuideMeWarning(false)}
+          onClassify={() => {
+            setGuideMeWarning(false);
+            setGuideImpactOpen(true);
+          }}
           onBeforeStart={openSidebar}
           onStarted={() => {
             setGuideMeWarning(false);
           }}
+        />
+      )}
+      {guideImpactOpen && (
+        <GuideImpactDialog
+          guide={data.guide}
+          onClose={() => setGuideImpactOpen(false)}
+          onSaved={(impact, impactNote) =>
+            setData((prev) =>
+              prev ? { ...prev, guide: { ...prev.guide, impact, impactNote, updatedAt: Date.now() } } : prev,
+            )
+          }
         />
       )}
 
@@ -266,6 +288,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
             {domain}
           </span>
         )}
+        <GuideImpactBadge impact={data.guide.impact} onClick={() => setGuideImpactOpen(true)} />
         {data.steps.length > 0 && (
           <button
             onClick={() => setTranslating(true)}

@@ -23,6 +23,7 @@ import { getGuide } from '@/core/guides/service';
 import type { Guide, Screenshot, Step } from '@/core/guides/types';
 import { formatDate } from '@/lib/utils';
 import { useFullview } from '@/stores/fullview';
+import { GuideImpactBadge } from '@/ui/shared/GuideImpact';
 import { PortableExportDialog } from '@/ui/shared/PortableExportDialog';
 import ZoomScreenshot from '@/ui/sidepanel/ZoomScreenshot';
 import { navigate } from '../router';
@@ -278,6 +279,9 @@ export default function GuideGridView({ category, onStar, onTrash, onRestore, on
                     : i18n.t('fullview_stepCount', [String(guide.stepIds.length)])}{' '}
                   &middot; {formatDate(guide.updatedAt)}
                 </p>
+                <div className="mt-2">
+                  <GuideImpactBadge impact={guide.impact} compact />
+                </div>
               </div>
               <CardMenu
                 guideId={guide.id}

@@ -24,12 +24,14 @@ export default function TopNav({ route }: TopNavProps) {
     guideStepCount,
     guideExportData: exportData,
     setSearchOpen,
+    setGuideImpactOpen,
   } = useFullview((s) => ({
     counts: s.counts,
     guideTitle: s.guideTitle,
     guideStepCount: s.guideStepCount,
     guideExportData: s.guideExportData,
     setSearchOpen: s.setSearchOpen,
+    setGuideImpactOpen: s.setGuideImpactOpen,
   }));
 
   return (
@@ -102,6 +104,7 @@ export default function TopNav({ route }: TopNavProps) {
             guide={exportData.guide}
             steps={exportData.steps}
             screenshots={exportData.screenshots}
+            onRequestClassification={() => setGuideImpactOpen(true)}
           />
         )}
       </div>

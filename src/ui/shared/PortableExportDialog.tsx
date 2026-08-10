@@ -1,29 +1,28 @@
 import { Download, X } from 'lucide-react';
 import { useState } from 'react';
 import { downloadBlob } from '@/core/export/download';
-import { GUIDE_IMPACTS } from '@/core/guides/impact';
+import { guideImpact } from '@/core/guides/impact';
 import { exportTaskStitchGuide, taskStitchFilename } from '@/core/guides/portable';
-import { updateGuideImpact } from '@/core/guides/service';
-import type { Guide, GuideImpact, Screenshot, Step } from '@/core/guides/types';
+import type { Guide, Screenshot, Step } from '@/core/guides/types';
 import { Button } from '@/ui/components/ui/button';
+import { GuideImpactBadge } from '@/ui/shared/GuideImpact';
 
 export function PortableExportDialog({
   guide,
   steps,
   screenshots,
   onClose,
+  onRequestClassification,
 }: {
   guide: Guide;
   steps: Step[];
   screenshots: Map<string, Screenshot>;
   onClose: () => void;
+  onRequestClassification?: () => void;
 }) {
-  const [impact, setImpact] = useState<GuideImpact | ''>(
-    guide.impact && guide.impact !== 'unknown' ? guide.impact : '',
-  );
-  const [impactNote, setImpactNote] = useState(guide.impactNote ?? '');
   const [exporting, setExporting] = useState(false);
-  const choices = GUIDE_IMPACTS.filter((item) => item.value !== 'unknown');
+  const impact = guideImpact(guide.impact);
+  const classified = guide.impact !== undefined && guide.impact !== 'unknown';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-deep/40 p-4 backdrop-blur-[2px]">
@@ -31,7 +30,9 @@ export function PortableExportDialog({
         <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-5 py-4">
           <div>
             <h2 className="text-sm font-bold text-foreground">Export interactive guide</h2>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Classify what following this guide can do.</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Review the saved guide details before downloading.
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -42,46 +43,21 @@ export function PortableExportDialog({
           </button>
         </div>
         <div className="space-y-4 p-5">
-          <div className="space-y-2">
-            {choices.map((choice) => {
-              const selected = impact === choice.value;
-              const stripe =
-                choice.tone === 'safe' ? 'bg-success' : choice.tone === 'danger' ? 'bg-destructive' : 'bg-amber-500';
-              return (
-                <label
-                  key={choice.value}
-                  className={`relative flex cursor-pointer gap-3 overflow-hidden rounded-xl border p-3.5 pl-5 transition-colors ${selected ? 'border-accent bg-secondary/35' : 'border-border hover:border-accent/50'}`}
-                >
-                  <span className={`absolute inset-y-0 left-0 w-1 ${stripe}`} />
-                  <input
-                    type="radio"
-                    name="guide-impact"
-                    value={choice.value}
-                    checked={selected}
-                    onChange={() => setImpact(choice.value)}
-                    className="mt-0.5 accent-accent"
-                  />
-                  <span>
-                    <span className="block text-xs font-bold text-foreground">{choice.label}</span>
-                    <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
-                      {choice.description}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
+          <div className="rounded-xl border border-border bg-secondary/20 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold text-foreground">Safety</span>
+              <GuideImpactBadge impact={guide.impact} compact />
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {guide.impactNote || impact.description}
+            </p>
           </div>
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold text-foreground">Safety note (optional)</span>
-            <textarea
-              value={impactNote}
-              maxLength={500}
-              rows={3}
-              onChange={(event) => setImpactNote(event.target.value)}
-              placeholder="Example: Creates a test customer in the AU sandbox."
-              className="w-full resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-            />
-          </label>
+          {!classified && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+              Classify this guide before exporting an interactive package. Safety is part of the guide, so it can be
+              reviewed anywhere the guide is used.
+            </div>
+          )}
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             The package includes screenshots and Guide Me targeting data. Captured typed values are replaced with
             “[redacted input]”.
@@ -91,14 +67,24 @@ export function PortableExportDialog({
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+          {!classified && onRequestClassification && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                onClose();
+                onRequestClassification();
+              }}
+            >
+              Classify guide
+            </Button>
+          )}
           <Button
-            disabled={!impact || exporting}
+            disabled={!classified || exporting}
             onClick={async () => {
-              if (!impact) return;
+              if (!classified || !guide.impact) return;
               setExporting(true);
               try {
-                const blob = await exportTaskStitchGuide(guide, steps, screenshots, impact, impactNote);
-                await updateGuideImpact(guide.id, impact, impactNote);
+                const blob = await exportTaskStitchGuide(guide, steps, screenshots, guide.impact, guide.impactNote);
                 downloadBlob(blob, taskStitchFilename(guide.title));
                 onClose();
               } finally {

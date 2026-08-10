@@ -19,6 +19,7 @@ import { getMostCommonDomain } from '@/lib/utils';
 import { Input } from '@/ui/components/ui/input';
 import EmptyGuideState from '@/ui/shared/EmptyGuideState';
 import FaviconImg from '@/ui/shared/FaviconImg';
+import { GuideImpactBadge, GuideImpactDialog } from '@/ui/shared/GuideImpact';
 import { GuideMeStartDialog } from '@/ui/shared/GuideMeStartDialog';
 import { ImproveGuideDialog } from '@/ui/shared/ImproveGuideDialog';
 import { ManualStepDialog } from '@/ui/shared/ManualStepDialog';
@@ -51,6 +52,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
   const [improving, setImproving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [guideMeWarning, setGuideMeWarning] = useState(false);
+  const [impactEditing, setImpactEditing] = useState(false);
 
   const loadGuide = useCallback(async () => {
     const result = await getGuide(guideId);
@@ -173,10 +175,25 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
         <GuideMeStartDialog
           guide={data.guide}
           onClose={() => setGuideMeWarning(false)}
+          onClassify={() => {
+            setGuideMeWarning(false);
+            setImpactEditing(true);
+          }}
           onStarted={() => {
             setGuideMeWarning(false);
             onGuideMe?.(guideId);
           }}
+        />
+      )}
+      {impactEditing && (
+        <GuideImpactDialog
+          guide={data.guide}
+          onClose={() => setImpactEditing(false)}
+          onSaved={(impact, impactNote) =>
+            setData((prev) =>
+              prev ? { ...prev, guide: { ...prev.guide, impact, impactNote, updatedAt: Date.now() } } : prev,
+            )
+          }
         />
       )}
       <div className="px-4 pt-3 pb-2">
@@ -246,7 +263,13 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
             </button>
           )}
           <div className="ml-auto shrink-0">
-            <ExportMenu guideId={guideId} guide={data.guide} steps={data.steps} screenshots={data.screenshots} />
+            <ExportMenu
+              guideId={guideId}
+              guide={data.guide}
+              steps={data.steps}
+              screenshots={data.screenshots}
+              onRequestClassification={() => setImpactEditing(true)}
+            />
           </div>
         </div>
         <div className="text-[11px] flex items-center gap-2 text-muted-foreground" style={{ marginLeft: '34px' }}>
@@ -267,6 +290,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
               </span>
             );
           })()}
+          <GuideImpactBadge impact={data.guide.impact} onClick={() => setImpactEditing(true)} compact />
         </div>
       </div>
       <div className="px-4 pt-1 pb-4 flex-1 flex flex-col">

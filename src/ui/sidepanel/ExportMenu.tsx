@@ -14,9 +14,10 @@ interface ExportMenuProps {
   guide: Guide;
   steps: Step[];
   screenshots: Map<string, Screenshot>;
+  onRequestClassification?: () => void;
 }
 
-export default function ExportMenu({ guide, steps, screenshots }: ExportMenuProps) {
+export default function ExportMenu({ guide, steps, screenshots, onRequestClassification }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [portableOpen, setPortableOpen] = useState(false);
@@ -68,6 +69,7 @@ export default function ExportMenu({ guide, steps, screenshots }: ExportMenuProp
           steps={steps}
           screenshots={screenshots}
           onClose={() => setPortableOpen(false)}
+          onRequestClassification={onRequestClassification}
         />
       )}
       <Button size="sm" onClick={() => setOpen((prev) => !prev)} disabled={exporting}>
