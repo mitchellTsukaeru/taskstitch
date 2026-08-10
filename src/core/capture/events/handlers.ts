@@ -1,6 +1,7 @@
 import PQueue from 'p-queue';
 import { localStorage } from '@/lib/browser-api';
 import { sendMessage } from '@/lib/messaging';
+import { freezeCaptureTarget } from '../capture-freeze';
 import { extractDOMContext } from '../dom/context';
 import { extractElementMeta } from '../dom/element-meta';
 import { findFocusableAncestor, isNavigatingClick, isTaskStitchElement, isTextField } from '../dom/element-utils';
@@ -10,6 +11,7 @@ import { InputSession } from './input-session';
 const DEDUP_MS = 300;
 const DRAG_MIN_PX = 30;
 const INTERCEPT_DELAY_MS = 100;
+const ABANDONED_FREEZE_TTL_MS = 2_000;
 
 async function waitForScreenshotDelay(): Promise<void> {
   const { screenshotTiming } = await localStorage.get(['screenshotTiming']);
@@ -24,12 +26,14 @@ interface PendingClickCapture {
   captureId: string;
   target: HTMLElement;
   ready: Promise<unknown>;
+  releaseFreeze: () => void;
 }
 
 interface CaptureDeliveryOptions {
   captureId?: string;
   eventId?: string;
   ready?: Promise<unknown>;
+  releaseFreeze?: () => void;
 }
 
 export interface CaptureHandle {
@@ -92,16 +96,20 @@ class CaptureController {
   }
 
   private async captureAction(snapshot: CaptureActionSnapshot, options: CaptureDeliveryOptions = {}) {
-    await options.ready?.catch(() => {});
-    if (!options.captureId) await waitForScreenshotDelay();
-    await sendMessage('captureStep', {
-      guideId: this.guideId,
-      captureToken: this.captureToken,
-      pageUrl: window.location.href,
-      ...snapshot,
-      captureId: options.captureId,
-      eventId: options.eventId,
-    });
+    try {
+      await options.ready?.catch(() => {});
+      if (!options.captureId) await waitForScreenshotDelay();
+      await sendMessage('captureStep', {
+        guideId: this.guideId,
+        captureToken: this.captureToken,
+        pageUrl: window.location.href,
+        ...snapshot,
+        captureId: options.captureId,
+        eventId: options.eventId,
+      });
+    } finally {
+      options.releaseFreeze?.();
+    }
   }
 
   private enqueueCaptureAction(action: string, target: HTMLElement, options: CaptureDeliveryOptions = {}) {
@@ -119,11 +127,16 @@ class CaptureController {
     if (isTaskStitchElement(target)) return;
 
     const now = Date.now();
-    if (target === lastClickTarget && now - lastClickTime < DEDUP_MS) return;
+    if (target === lastClickTarget && now - lastClickTime < DEDUP_MS) {
+      this.pendingClickCapture?.releaseFreeze();
+      this.pendingClickCapture = null;
+      return;
+    }
     lastClickTarget = target;
     lastClickTime = now;
 
     const pending = this.pendingClickCapture?.target === target ? this.pendingClickCapture : null;
+    if (!pending) this.pendingClickCapture?.releaseFreeze();
     this.pendingClickCapture = null;
 
     if (isTextField(target)) {
@@ -138,6 +151,7 @@ class CaptureController {
       captureId: pending?.captureId,
       eventId: `${this.guideId}:click:${me.timeStamp}:${me.button}`,
       ready: pending?.ready,
+      releaseFreeze: pending?.releaseFreeze,
     };
 
     if (isNavigatingClick(target)) {
@@ -247,11 +261,15 @@ class CaptureController {
     if (pe.button === 0 && raw instanceof Element) {
       const target = findFocusableAncestor(raw);
       if (!isTaskStitchElement(target) && !isTextField(target)) {
+        this.pendingClickCapture?.releaseFreeze();
         const captureId = `${this.guideId}:pointer:${performance.timeOrigin}:${pe.timeStamp}:${pe.pointerId}`;
+        const releaseFreeze = freezeCaptureTarget(target);
+        setTimeout(releaseFreeze, ABANDONED_FREEZE_TTL_MS);
         this.pendingClickCapture = {
           captureId,
           target,
           ready: sendMessage('prepareCapture', { captureId }),
+          releaseFreeze,
         };
       }
     }
@@ -290,6 +308,8 @@ class CaptureController {
     for (const [event, handler, opts] of this.listeners) {
       window.removeEventListener(event, handler, opts);
     }
+    this.pendingClickCapture?.releaseFreeze();
+    this.pendingClickCapture = null;
     await this.queue.add(() => this.input.finalize());
     await this.queue.onIdle();
   }
