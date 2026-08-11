@@ -11,7 +11,9 @@ describe('freezeCaptureTarget', () => {
 
   it('keeps a visual copy after the clicked control is removed', () => {
     const button = document.createElement('button');
-    button.textContent = 'Log in to Control Panel';
+    const label = document.createElement('span');
+    label.textContent = 'Log in to Control Panel';
+    button.appendChild(label);
     button.style.backgroundColor = 'rgb(79, 70, 229)';
     document.body.appendChild(button);
     Object.defineProperty(button, 'getBoundingClientRect', {
@@ -26,6 +28,9 @@ describe('freezeCaptureTarget', () => {
     expect(freeze?.textContent).toBe('Log in to Control Panel');
     expect((freeze as HTMLElement).style.left).toBe('20px');
     expect((freeze as HTMLElement).style.top).toBe('30px');
+    expect((freeze as HTMLElement).style.getPropertyValue('pointer-events')).toBe('none');
+    expect((freeze?.querySelector('span') as HTMLElement).style.getPropertyValue('pointer-events')).toBe('none');
+    expect(freeze?.hasAttribute('data-mimik-ignore')).toBe(true);
 
     release();
     expect(document.querySelector('[data-taskstitch-capture-freeze]')).toBeNull();

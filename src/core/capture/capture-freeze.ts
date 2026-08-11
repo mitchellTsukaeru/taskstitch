@@ -33,11 +33,16 @@ export function freezeCaptureTarget(target: HTMLElement): () => void {
   for (let index = 0; index < sourceElements.length; index += 1) {
     const sourceElement = sourceElements[index];
     const clonedElement = clonedElements[index];
-    if (sourceElement && clonedElement) copyComputedStyles(sourceElement, clonedElement);
+    if (sourceElement && clonedElement) {
+      copyComputedStyles(sourceElement, clonedElement);
+      if (clonedElement instanceof HTMLElement || clonedElement instanceof SVGElement) {
+        clonedElement.style.setProperty('pointer-events', 'none', 'important');
+      }
+    }
   }
 
   clone.setAttribute(CAPTURE_FREEZE_ATTRIBUTE, '');
-  clone.setAttribute('data-taskstitch-ignore', '');
+  clone.setAttribute('data-mimik-ignore', '');
   clone.setAttribute('aria-hidden', 'true');
   clone.style.setProperty('position', 'fixed', 'important');
   clone.style.setProperty('inset', 'auto', 'important');
@@ -47,7 +52,6 @@ export function freezeCaptureTarget(target: HTMLElement): () => void {
   clone.style.setProperty('height', `${rect.height}px`, 'important');
   clone.style.setProperty('margin', '0', 'important');
   clone.style.setProperty('transform', 'none', 'important');
-  clone.style.setProperty('pointer-events', 'none', 'important');
   clone.style.setProperty('z-index', MAX_Z_INDEX, 'important');
 
   target.ownerDocument.documentElement.appendChild(clone);
