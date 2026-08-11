@@ -6,6 +6,7 @@ import { AI_PROVIDERS, type AIProviderKey, CUSTOM_MODEL_ID, isPresetModel } from
 import { AI_LANGUAGES, type AILanguageCode } from '@/core/capture/ai/prompts';
 import { DEFAULT_SCREENSHOT_TIMING, SCREENSHOT_TIMINGS, type ScreenshotTiming } from '@/core/capture/screenshot-timing';
 import { localStorage } from '@/lib/browser-api';
+import { UI_LANGUAGES, type UILanguageCode } from '@/lib/ui-language';
 import { Button } from '@/ui/components/ui/button';
 import { Input } from '@/ui/components/ui/input';
 import MascotIcon from '@/ui/fullview/components/MascotIcon';
@@ -21,6 +22,7 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
   const [baseUrl, setBaseUrl] = useState('');
   const [saved, setSaved] = useState(false);
   const [aiLanguage, setAiLanguage] = useState<AILanguageCode>('en');
+  const [uiLanguage, setUiLanguage] = useState<UILanguageCode>('browser');
   const [aiIncludeScreenshots, setAiIncludeScreenshots] = useState(false);
   const [screenshotTiming, setScreenshotTiming] = useState<ScreenshotTiming>(DEFAULT_SCREENSHOT_TIMING);
   const [blurPresets, setBlurPresets] = useState<Record<PresetKey, boolean>>({
@@ -40,6 +42,7 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
         'aiModel',
         'aiBaseUrl',
         'aiLanguage',
+        'uiLanguage',
         'aiIncludeScreenshots',
         'blurPresets',
         'screenshotTiming',
@@ -51,6 +54,9 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
         if (result.aiApiKey) setApiKey(result.aiApiKey as string);
         if (result.aiBaseUrl) setBaseUrl(result.aiBaseUrl as string);
         if (result.aiLanguage) setAiLanguage(result.aiLanguage as AILanguageCode);
+        if (UI_LANGUAGES.some((language) => language.code === result.uiLanguage)) {
+          setUiLanguage(result.uiLanguage as UILanguageCode);
+        }
         setAiIncludeScreenshots(result.aiIncludeScreenshots === true);
         if (result.blurPresets) setBlurPresets(result.blurPresets as Record<PresetKey, boolean>);
         const storedTiming = result.screenshotTiming as string | undefined;
@@ -72,6 +78,7 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
       aiModel: model,
       aiBaseUrl: baseUrl.trim(),
       aiLanguage,
+      uiLanguage,
       aiIncludeScreenshots,
       blurPresets,
       screenshotTiming,
@@ -107,6 +114,57 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
       </div>
 
       <div className="flex-1 px-3 py-4 space-y-3">
+        <div className="border border-border rounded-[10px] p-3.5 space-y-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
+              <Globe size={14} className="text-accent" />
+            </div>
+            <span className="text-xs font-bold text-foreground">{i18n.t('settings.languageSettings')}</span>
+          </div>
+
+          <div>
+            <label htmlFor="interface-language" className="block text-[11px] font-semibold text-foreground mb-1">
+              {i18n.t('settings.interfaceLanguage')}
+            </label>
+            <select
+              id="interface-language"
+              value={uiLanguage}
+              onChange={(event) => setUiLanguage(event.target.value as UILanguageCode)}
+              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] text-foreground bg-card font-medium outline-none focus:border-ring focus:ring-2 focus:ring-ring/10"
+            >
+              {UI_LANGUAGES.map((language) => (
+                <option key={language.code} value={language.code}>
+                  {language.code === 'browser' ? i18n.t('settings.browserLanguage') : language.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+              {i18n.t('settings.interfaceLanguageHelp')}
+            </p>
+          </div>
+
+          <div className="border-t border-secondary pt-3">
+            <label htmlFor="ai-language" className="block text-[11px] font-semibold text-foreground mb-1">
+              {i18n.t('settings.aiLanguage')}
+            </label>
+            <select
+              id="ai-language"
+              value={aiLanguage}
+              onChange={(event) => setAiLanguage(event.target.value as AILanguageCode)}
+              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] text-foreground bg-card font-medium outline-none focus:border-ring focus:ring-2 focus:ring-ring/10"
+            >
+              {AI_LANGUAGES.map((language) => (
+                <option key={language.code} value={language.code}>
+                  {language.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+              {i18n.t('settings.aiLanguageHelp')}
+            </p>
+          </div>
+        </div>
+
         <div className="border border-border rounded-[10px] p-3.5 space-y-3">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
@@ -191,25 +249,6 @@ export default function SettingsView({ onBack }: SettingsViewProps) {
               placeholder="https://api.example.com/v1"
             />
             <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{i18n.t('settings.baseUrlHelp')}</p>
-          </div>
-
-          <div>
-            <label htmlFor="ai-language" className="block text-[11px] font-semibold text-foreground mb-1">
-              <Globe size={11} className="inline mr-1 -mt-px" />
-              {i18n.t('settings.aiLanguage')}
-            </label>
-            <select
-              id="ai-language"
-              value={aiLanguage}
-              onChange={(e) => setAiLanguage(e.target.value as AILanguageCode)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] text-foreground bg-card font-medium outline-none focus:border-ring focus:ring-2 focus:ring-ring/10"
-            >
-              {AI_LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           <label className="flex items-start gap-2.5 rounded-lg border border-border p-3 cursor-pointer hover:border-accent/60">

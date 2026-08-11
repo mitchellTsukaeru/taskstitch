@@ -54,7 +54,16 @@ export const useFullviewStore = create<FullviewStore>((set) => ({
   toggleSearch: () => set((s) => ({ searchOpen: !s.searchOpen })),
 
   guideTitle: '',
-  setGuideTitle: (guideTitle) => set({ guideTitle }),
+  setGuideTitle: (guideTitle) =>
+    set((state) => ({
+      guideTitle,
+      guideExportData: state.guideExportData
+        ? {
+            ...state.guideExportData,
+            guide: { ...state.guideExportData.guide, title: guideTitle },
+          }
+        : null,
+    })),
   guideStepCount: 0,
   setGuideStepCount: (guideStepCount) => set({ guideStepCount }),
   guideExportData: null,

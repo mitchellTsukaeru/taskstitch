@@ -82,6 +82,11 @@ recording:
 
 settings:
   title: 設定
+  languageSettings: 言語
+  interfaceLanguage: インターフェースの言語
+  browserLanguage: ブラウザの言語
+  interfaceLanguageHelp: TaskStitch のメニュー、操作、日付、エクスポートのラベルを変更します。ガイドの内容は変更されません。
+  aiLanguageHelp: AI が生成するガイドのタイトル、ステップの説明、改善案の言語を設定します。既存のガイドは変更されません。
   aiDescriptions: AI による説明
   provider: プロバイダー
   model: モデル

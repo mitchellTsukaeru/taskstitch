@@ -82,6 +82,11 @@ recording:
 
 settings:
   title: "Paramètres"
+  languageSettings: Langues
+  interfaceLanguage: Langue de l’interface
+  browserLanguage: Langue du navigateur
+  interfaceLanguageHelp: Modifie les menus, les commandes, les dates et les libellés d’exportation de TaskStitch. Le contenu des guides reste inchangé.
+  aiLanguageHelp: Définit la langue des titres, des étapes et des améliorations générés par l’IA. Les guides existants restent inchangés.
   aiDescriptions: Descriptions IA
   provider: Fournisseur
   model: "Modèle"

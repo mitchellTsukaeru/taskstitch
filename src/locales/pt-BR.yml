@@ -82,6 +82,11 @@ recording:
 
 settings:
   title: Ajustes
+  languageSettings: Idiomas
+  interfaceLanguage: Idioma da interface
+  browserLanguage: Idioma do navegador
+  interfaceLanguageHelp: Altera os menus, controles, datas e rótulos de exportação do TaskStitch. O conteúdo dos guias não é alterado.
+  aiLanguageHelp: Controla o idioma dos títulos, passos e melhorias gerados por IA. Os guias existentes não são alterados.
   aiDescriptions: Descrições com IA
   provider: Provedor
   model: Modelo

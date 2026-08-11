@@ -31,6 +31,23 @@ describe('SettingsView AI configuration', () => {
     expect(language.textContent).toContain('日本語');
   });
 
+  it('loads and saves a Japanese interface independently from the AI language', async () => {
+    storageGet.mockResolvedValue({ uiLanguage: 'ja', aiLanguage: 'en' });
+
+    render(<SettingsView />);
+
+    const interfaceLanguage = (await screen.findByLabelText('settings.interfaceLanguage')) as HTMLSelectElement;
+    expect(interfaceLanguage.value).toBe('ja');
+    expect((screen.getByLabelText('settings.aiLanguage') as HTMLSelectElement).value).toBe('en');
+
+    fireEvent.change(interfaceLanguage, { target: { value: 'en' } });
+    fireEvent.click(screen.getByRole('button', { name: 'settings.saveSettings' }));
+
+    await waitFor(() => {
+      expect(storageSet).toHaveBeenCalledWith(expect.objectContaining({ uiLanguage: 'en', aiLanguage: 'en' }));
+    });
+  });
+
   it('loads and saves a custom model ID without changing the direct BYOK settings shape', async () => {
     storageGet.mockResolvedValue({
       aiApiKey: 'local-test-key',

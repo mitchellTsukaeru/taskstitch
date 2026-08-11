@@ -1,6 +1,6 @@
 import type { JSONContent } from '@tiptap/core';
 import { ArrowLeft, Languages, Layers, Maximize2, Play, Plus, Sparkles } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { i18n } from '#imports';
 import {
   deleteStep,
@@ -53,6 +53,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
   const [translating, setTranslating] = useState(false);
   const [guideMeWarning, setGuideMeWarning] = useState(false);
   const [impactEditing, setImpactEditing] = useState(false);
+  const persistedTitleRef = useRef('');
 
   const loadGuide = useCallback(async () => {
     const result = await getGuide(guideId);
@@ -63,6 +64,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
     }
     setData(result);
     setTitle(result.guide.title);
+    persistedTitleRef.current = result.guide.title;
     setLoading(false);
   }, [guideId]);
 
@@ -71,21 +73,35 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
   }, [loadGuide]);
 
   const handleTitleBlur = useCallback(async () => {
-    if (!data || title === data.guide.title) return;
+    if (!data || title === persistedTitleRef.current) return;
     await updateGuideTitle(guideId, title);
+    persistedTitleRef.current = title;
     setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, title } } : prev));
   }, [data, guideId, title]);
 
   const handleDescriptionChange = useCallback(async (stepId: string, description: string) => {
-    await updateStepDescription(stepId, description);
     setData((prev) => {
       if (!prev) return prev;
       return { ...prev, steps: prev.steps.map((s) => (s.id === stepId ? { ...s, description } : s)) };
     });
+    await updateStepDescription(stepId, description);
   }, []);
 
   const handleRichDescriptionChange = useCallback(async (stepId: string, content: JSONContent, plainText: string) => {
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            steps: prev.steps.map((step) =>
+              step.id === stepId ? { ...step, description: plainText, richDescription: content } : step,
+            ),
+          }
+        : prev,
+    );
     await updateStepRichDescription(stepId, content);
+  }, []);
+
+  const handleDraftChange = useCallback((stepId: string, content: JSONContent, plainText: string) => {
     setData((prev) =>
       prev
         ? {
@@ -207,7 +223,10 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
           </button>
           <Input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, title: e.target.value } } : prev));
+            }}
             onBlur={handleTitleBlur}
             className="text-lg font-bold bg-transparent border-0 border-b border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-accent shadow-none p-0 h-auto text-foreground"
           />
@@ -307,6 +326,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
                 screenshot={data.screenshots.get(step.id)}
                 onDescriptionChange={handleDescriptionChange}
                 onRichDescriptionChange={handleRichDescriptionChange}
+                onDraftChange={handleDraftChange}
                 onDelete={handleDeleteStep}
                 onBlur={(stepId) => setBlurringStepId(stepId)}
                 dragHandleProps={{

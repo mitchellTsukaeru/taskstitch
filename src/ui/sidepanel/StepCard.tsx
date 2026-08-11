@@ -19,6 +19,7 @@ interface StepCardProps {
   screenshot: Screenshot | undefined;
   onDescriptionChange: (stepId: string, description: string) => void;
   onRichDescriptionChange?: (stepId: string, content: JSONContent, plainText: string) => void;
+  onDraftChange?: (stepId: string, content: JSONContent, plainText: string) => void;
   onDelete: (stepId: string) => void;
   dragHandleProps?: DragHandleProps;
   onBlur?: (stepId: string) => void;
@@ -33,6 +34,7 @@ export default function StepCard({
   dragHandleProps,
   onBlur,
   onRichDescriptionChange,
+  onDraftChange,
 }: StepCardProps) {
   const [dragOver, setDragOver] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -129,6 +131,7 @@ export default function StepCard({
               content={content}
               onChange={(next, plainText) => {
                 setContent(next);
+                onDraftChange?.(step.id, next, plainText);
                 pendingSave.current = { content: next, plainText };
                 if (saveTimer.current) clearTimeout(saveTimer.current);
                 saveTimer.current = setTimeout(() => {

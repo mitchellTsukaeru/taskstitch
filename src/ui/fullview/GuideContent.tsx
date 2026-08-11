@@ -88,25 +88,43 @@ export default function GuideContent({ guideId }: GuideContentProps) {
     return onGuidesChanged(() => loadGuide());
   }, [loadGuide]);
 
+  useEffect(() => {
+    if (data) setGuideExportData({ guideId, ...data });
+  }, [data, guideId, setGuideExportData]);
+
   useEffect(() => () => setGuideImpactOpen(false), [setGuideImpactOpen]);
 
   const handleTitleBlur = useCallback(async () => {
-    if (!data || title === data.guide.title) return;
+    if (!data || title === titleRef.current) return;
     await updateGuideTitle(guideId, title);
+    titleRef.current = title;
     setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, title } } : prev));
     document.title = `${title} — ${i18n.t('app_name')}`;
   }, [data, guideId, title]);
 
   const handleDescriptionChange = useCallback(async (stepId: string, description: string) => {
-    await updateStepDescription(stepId, description);
     setData((prev) => {
       if (!prev) return prev;
       return { ...prev, steps: prev.steps.map((s) => (s.id === stepId ? { ...s, description } : s)) };
     });
+    await updateStepDescription(stepId, description);
   }, []);
 
   const handleRichDescriptionChange = useCallback(async (stepId: string, content: JSONContent, plainText: string) => {
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            steps: prev.steps.map((step) =>
+              step.id === stepId ? { ...step, description: plainText, richDescription: content } : step,
+            ),
+          }
+        : prev,
+    );
     await updateStepRichDescription(stepId, content);
+  }, []);
+
+  const handleDraftChange = useCallback((stepId: string, content: JSONContent, plainText: string) => {
     setData((prev) =>
       prev
         ? {
@@ -263,6 +281,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
             onChange={(e) => {
               setTitle(e.target.value);
               setGuideTitle(e.target.value);
+              setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, title: e.target.value } } : prev));
               const el = e.target;
               el.style.height = '0';
               el.style.height = `${el.scrollHeight}px`;
@@ -331,6 +350,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
         screenshots={data.screenshots}
         onDescriptionChange={handleDescriptionChange}
         onRichDescriptionChange={handleRichDescriptionChange}
+        onDraftChange={handleDraftChange}
         onDelete={handleDeleteStep}
         onBlur={(stepId) => setBlurringStepId(stepId)}
         onReorder={(newSteps) => setData((prev) => (prev ? { ...prev, steps: newSteps } : prev))}

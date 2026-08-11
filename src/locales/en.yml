@@ -82,6 +82,11 @@ recording:
 
 settings:
   title: Settings
+  languageSettings: Languages
+  interfaceLanguage: Interface Language
+  browserLanguage: Browser language
+  interfaceLanguageHelp: Changes TaskStitch menus, controls, dates, and export labels. Guide content is unchanged.
+  aiLanguageHelp: Controls AI-generated guide titles, step descriptions, and improvements. Existing guides are unchanged.
   aiDescriptions: AI Descriptions
   provider: Provider
   model: Model

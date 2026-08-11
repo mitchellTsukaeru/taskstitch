@@ -13,6 +13,7 @@ interface GuideStepListProps {
   screenshots: Map<string, Screenshot>;
   onDescriptionChange: (stepId: string, description: string) => void;
   onRichDescriptionChange: (stepId: string, content: JSONContent, plainText: string) => void;
+  onDraftChange: (stepId: string, content: JSONContent, plainText: string) => void;
   onDelete: (stepId: string) => void;
   onBlur: (stepId: string) => void;
   onReorder: (newSteps: Step[]) => void;
@@ -25,6 +26,7 @@ export default function GuideStepList({
   screenshots,
   onDescriptionChange,
   onRichDescriptionChange,
+  onDraftChange,
   onDelete,
   onBlur,
   onReorder,
@@ -97,6 +99,7 @@ export default function GuideStepList({
             screenshot={screenshots.get(step.id)}
             onDescriptionChange={onDescriptionChange}
             onRichDescriptionChange={onRichDescriptionChange}
+            onDraftChange={onDraftChange}
             onDelete={onDelete}
             onBlur={onBlur}
             dragHandleProps={{

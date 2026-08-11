@@ -68,9 +68,19 @@ describe('exportGuideAsMarkdown', () => {
     });
     const md = await exportGuideAsMarkdown(guide, [makeStep()], new Map());
 
-    expect(md).toContain('[Change-Billing-Contact.taskstitch](Change-Billing-Contact.taskstitch)');
+    expect(md).toContain('**Add interactive guide file here**');
+    expect(md).toContain('Drag and drop `Change-Billing-Contact.taskstitch` here');
+    expect(md).not.toContain('[Change-Billing-Contact.taskstitch](');
     expect(md).toContain('Safety: Makes changes');
     expect(md).toContain('Uses production.');
+  });
+
+  it('renders domain-like portable filenames as attachment placeholders instead of links', async () => {
+    const guide = makeGuide({ title: 'Guide on tora.tsukaeru.ne.jp' });
+    const md = await exportGuideAsMarkdown(guide, [makeStep()], new Map());
+
+    expect(md).toContain('Drag and drop `Guide-on-tora-tsukaeru-ne-jp.taskstitch` here');
+    expect(md).not.toContain('[Guide-on-tora-tsukaeru-ne-jp.taskstitch](');
   });
 
   it('includes step descriptions with padded step numbers', async () => {
