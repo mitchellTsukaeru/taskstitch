@@ -43,6 +43,12 @@ library:
   deletePermanently: "Supprimer définitivement"
   openInFullView: "Ouvrir en plein écran"
 
+importGuide:
+  dropTitle: Déposez votre guide .taskstitch
+  dropSubtitle: Relâchez pour vérifier et importer le guide interactif
+  dropOneFile: Déposez un guide à la fois.
+  dropTaskStitchFile: Déposez un fichier de guide interactif .taskstitch.
+
 guideme:
   live: En direct
   stepOf: "Étape $1 sur $2"

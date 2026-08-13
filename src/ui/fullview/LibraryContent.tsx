@@ -25,6 +25,7 @@ import type { Guide, Screenshot } from '@/core/guides/types';
 import { openSidebar } from '@/lib/browser-api';
 import { useFullview } from '@/stores/fullview';
 import { ImportGuideDialog } from '@/ui/shared/ImportGuideDialog';
+import { TaskStitchDropTarget } from '@/ui/shared/TaskStitchDropTarget';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import GuideGridView from './components/GuideGridView';
 import GuideListView from './components/GuideListView';
@@ -234,7 +235,7 @@ export default function LibraryContent({ category }: LibraryContentProps) {
   const showPagination = !loading && allGuidesRef.current.length > PAGE_SIZE;
 
   return (
-    <div>
+    <TaskStitchDropTarget className="relative min-h-[420px]" onFile={setImportFile}>
       {importFile && (
         <ImportGuideDialog
           file={importFile}
@@ -357,6 +358,6 @@ export default function LibraryContent({ category }: LibraryContentProps) {
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmPermanentDelete}
       />
-    </div>
+    </TaskStitchDropTarget>
   );
 }
