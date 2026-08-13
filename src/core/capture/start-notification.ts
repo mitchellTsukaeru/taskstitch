@@ -1,6 +1,4 @@
 const ANIMATION_DURATION_MS = 4000;
-const FILL_DURATION = '2s';
-const FILL_DELAY = '0.5s';
 
 const STYLES = `
   :host {
@@ -13,7 +11,9 @@ const STYLES = `
   .wrap {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(15, 14, 42, 0.78);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -27,67 +27,149 @@ const STYLES = `
     100% { opacity: 0; }
   }
 
-  .mascot-wrap {
+  .logo-wrap {
     position: relative;
-    width: clamp(120px, 20vw, 250px);
-    aspect-ratio: 200 / 150;
-    animation: bounceSquash 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    width: clamp(128px, 18vw, 210px);
+    aspect-ratio: 1;
+    filter: drop-shadow(0 18px 30px rgba(8, 7, 30, 0.35));
   }
 
-  .mascot-wrap svg {
+  .logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border-radius: 36%;
+    background: rgba(199, 210, 254, 0.09);
+    transform: rotate(45deg) scale(0.7);
+    animation: aura 2.8s ease-out 0.2s both;
+  }
+
+  .logo-mark {
+    position: relative;
     width: 100%;
     height: 100%;
     display: block;
+    overflow: visible;
+    animation: mark-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
   }
 
-  .wink-eye {
-    transform-origin: 124px 117px;
-    animation: wink 0.45s ease 2.8s;
+  .stitch-track,
+  .stitch-line {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 12;
   }
 
-  @keyframes bounceSquash {
-    0%   { transform: translateY(-80px) scaleY(1.1) scaleX(0.9); opacity: 0; }
-    25%  { transform: translateY(10px) scaleY(0.85) scaleX(1.12); opacity: 1; }
-    40%  { transform: translateY(-15px) scaleY(1.05) scaleX(0.97); }
-    55%  { transform: translateY(5px) scaleY(0.95) scaleX(1.03); }
-    70%  { transform: translateY(-3px) scaleY(1.02) scaleX(0.99); }
-    100% { transform: translateY(0) scaleY(1) scaleX(1); }
+  .stitch-track {
+    stroke: #3730A3;
+    opacity: 0.55;
   }
 
-  @keyframes wink {
-    0%   { transform: scaleY(1); }
-    35%  { transform: scaleY(0.05); }
-    50%  { transform: scaleY(0.05); }
-    75%  { transform: scaleY(1.15); }
-    100% { transform: scaleY(1); }
+  .stitch-line {
+    stroke: #38BDF8;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: stitch-line 1.8s cubic-bezier(0.65, 0, 0.35, 1) 550ms forwards;
+  }
+
+  .logo-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: node-arrive 480ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .node-one { animation-delay: 300ms; }
+  .node-two { animation-delay: 1150ms; }
+  .node-three { animation-delay: 1950ms; }
+
+  .node-face {
+    fill: #1E1B4B;
+    stroke: #4F46E5;
+    stroke-width: 5;
+  }
+
+  .node-glyph {
+    fill: none;
+    stroke: #C7D2FE;
+    stroke-width: 6;
+    stroke-linecap: round;
+    opacity: 0;
+    animation: glyph-appear 280ms ease-out forwards;
+  }
+
+  .glyph-one { animation-delay: 650ms; }
+  .glyph-two { animation-delay: 1500ms; }
+  .glyph-three {
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: check-draw 420ms ease-out 2300ms forwards;
+  }
+
+  @keyframes mark-enter {
+    from { opacity: 0; transform: scale(0.82) rotate(-4deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  @keyframes stitch-line {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes node-arrive {
+    0% { opacity: 0; transform: scale(0.45) rotate(-10deg); }
+    65% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  @keyframes glyph-appear {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes check-draw {
+    0% { opacity: 1; stroke-dashoffset: 1; }
+    100% { opacity: 1; stroke-dashoffset: 0; }
+  }
+
+  @keyframes aura {
+    0% { opacity: 0; transform: rotate(45deg) scale(0.55); }
+    45% { opacity: 1; }
+    100% { opacity: 0.45; transform: rotate(45deg) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrap { animation-duration: 600ms; }
+    .logo-wrap::before,
+    .logo-mark,
+    .stitch-line,
+    .logo-node,
+    .node-glyph {
+      animation: none;
+    }
+    .logo-mark,
+    .logo-node,
+    .node-glyph { opacity: 1; }
+    .stitch-line,
+    .glyph-three { stroke-dashoffset: 0; }
   }
 `;
 
-function buildMascotSVG(): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 50 160 120" width="200" height="150">
-    <defs>
-      <mask id="riseMask">
-        <rect x="20" y="50" width="160" height="120" fill="black"/>
-        <rect x="20" y="170" width="160" height="120" fill="white">
-          <animate attributeName="y" from="170" to="50" dur="${FILL_DURATION}" begin="${FILL_DELAY}" fill="freeze" calcMode="spline" keySplines="0.22 0.61 0.36 1"/>
-        </rect>
-      </mask>
-    </defs>
-    <g opacity="0.3">
-      <rect x="30" y="95" width="140" height="68" rx="5" fill="#0F0E2A"/>
-      <path d="M30 95 L30 80 Q30 60, 100 60 Q170 60, 170 80 L170 95 Z" fill="#0F0E2A"/>
-      <rect x="30" y="93" width="140" height="3" fill="#252360"/>
-      <path d="M68 122 Q76 112 84 122" stroke="#252360" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M116 122 Q124 112 132 122" stroke="#252360" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M84 138 Q100 148 116 138" stroke="#252360" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+function buildLogoSVG(): string {
+  return `<svg class="logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" aria-hidden="true">
+    <path class="stitch-track" d="M52 52 C82 52 72 100 100 100 C128 100 118 148 148 148" pathLength="1"/>
+    <path class="stitch-line" d="M52 52 C82 52 72 100 100 100 C128 100 118 148 148 148" pathLength="1"/>
+    <g class="logo-node node-one">
+      <rect class="node-face" x="32" y="32" width="40" height="40" rx="11"/>
+      <path class="node-glyph glyph-one" d="M44 48 H60 M44 58 H55"/>
     </g>
-    <g mask="url(#riseMask)">
-      <rect x="30" y="95" width="140" height="68" rx="5" fill="#1E1B4B"/>
-      <path d="M30 95 L30 80 Q30 60, 100 60 Q170 60, 170 80 L170 95 Z" fill="#3730A3"/>
-      <rect x="30" y="93" width="140" height="3" fill="#C7D2FE"/>
-      <path d="M68 122 Q76 112 84 122" stroke="#C7D2FE" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path class="wink-eye" d="M116 122 Q124 112 132 122" stroke="#C7D2FE" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M84 138 Q100 148 116 138" stroke="#C7D2FE" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <g class="logo-node node-two">
+      <rect class="node-face" x="80" y="80" width="40" height="40" rx="11"/>
+      <path class="node-glyph glyph-two" d="M92 96 H108 M92 106 H103"/>
+    </g>
+    <g class="logo-node node-three">
+      <rect class="node-face" x="128" y="128" width="40" height="40" rx="11"/>
+      <path class="node-glyph glyph-three" d="M140 144 L147 151 L158 139" pathLength="1"/>
     </g>
   </svg>`;
 }
@@ -104,17 +186,19 @@ export function showStartNotification(): Promise<void> {
 
     const wrap = document.createElement('div');
     wrap.className = 'wrap';
+    wrap.setAttribute('role', 'status');
+    wrap.setAttribute('aria-label', 'TaskStitch capture starting');
 
-    const mascotWrap = document.createElement('div');
-    mascotWrap.className = 'mascot-wrap';
-    mascotWrap.innerHTML = buildMascotSVG();
+    const logoWrap = document.createElement('div');
+    logoWrap.className = 'logo-wrap';
+    logoWrap.innerHTML = buildLogoSVG();
 
-    wrap.appendChild(mascotWrap);
+    wrap.appendChild(logoWrap);
     shadow.appendChild(wrap);
     document.documentElement.appendChild(host);
 
-    wrap.addEventListener('animationend', (e) => {
-      if (e.target !== wrap) return;
+    wrap.addEventListener('animationend', (event) => {
+      if (event.target !== wrap) return;
       host.remove();
       resolve();
     });

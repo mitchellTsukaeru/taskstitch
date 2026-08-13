@@ -242,3 +242,5 @@ Font: Poppins (loaded via `@fontsource/poppins`).
 - **Recording notification** uses `animationend` event (not hardcoded delays) for timing
 - **Font loading** uses `@fontsource/poppins` (CSP-safe, no CDN dependency)
 - **Cross-context sync** via BroadcastChannel — star/delete events update other views without full reload
+
+@RTK.md

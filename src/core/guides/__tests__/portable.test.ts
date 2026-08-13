@@ -17,6 +17,7 @@ const guide: Guide = {
   stepIds: ['step-1'],
   starred: false,
   deletedAt: null,
+  guideMeOrigins: { 'https://stg.example.com': 'https://example.com' },
 };
 
 function step(overrides: Partial<Step> = {}): Step {
@@ -69,7 +70,11 @@ describe('portable TaskStitch guides', () => {
     expect(portable).toMatchObject({
       format: TASKSTITCH_FORMAT,
       version: TASKSTITCH_VERSION,
-      guide: { impact: 'makes_changes', impactNote: 'Uses the test tenant.' },
+      guide: {
+        impact: 'makes_changes',
+        impactNote: 'Uses the test tenant.',
+        guideMeOrigins: { 'https://stg.example.com': 'https://example.com' },
+      },
     });
     expect(portable.steps[0].description).toBe('Type "[redacted input]" in API key');
     expect(portable.steps[0].elementMeta?.cssSelector).toBe('#api-key');
@@ -104,6 +109,25 @@ describe('portable TaskStitch guides', () => {
 
     expect(parsed.steps[0].url).toBe('');
     expect(parsed.steps[0].richDescription?.content?.[0].content?.[0].marks).toBeUndefined();
+  });
+
+  it('sanitizes imported Guide Me origin mappings', () => {
+    const parsed = parseTaskStitchPackage({
+      format: TASKSTITCH_FORMAT,
+      version: TASKSTITCH_VERSION,
+      exportedAt: new Date().toISOString(),
+      guide: {
+        title: 'Imported',
+        impact: 'read_only',
+        guideMeOrigins: {
+          'https://stg.example.com/path': 'https://example.com/ignored',
+          'javascript:bad': 'https://unsafe.example.com',
+        },
+      },
+      steps: [{ index: 0, description: 'Open page', action: 'click', url: 'https://stg.example.com/path' }],
+    });
+
+    expect(parsed.guide.guideMeOrigins).toEqual({ 'https://stg.example.com': 'https://example.com' });
   });
 
   it('rejects unsupported versions and produces stable filenames', () => {

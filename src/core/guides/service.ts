@@ -1,4 +1,5 @@
 import { i18n } from '#imports';
+import { normalizeHttpOrigin } from '@/core/guideme/urls';
 import { db } from './db';
 import { plainTextDocument, richTextToPlainText } from './rich-text';
 import type { Guide, GuideImpact, Screenshot, Step } from './types';
@@ -92,6 +93,31 @@ export async function updateGuideImpact(id: string, impact: GuideImpact, impactN
   await db.guides.update(id, {
     impact,
     impactNote: impactNote?.trim().slice(0, 500) || undefined,
+    updatedAt: Date.now(),
+  });
+  notifyGuidesChanged({ type: 'mutated' });
+}
+
+export async function updateGuideOriginMapping(id: string, sourceValue: string, targetValue: string): Promise<void> {
+  const sourceOrigin = normalizeHttpOrigin(sourceValue);
+  const targetOrigin = normalizeHttpOrigin(targetValue);
+  if (!sourceOrigin || !targetOrigin) throw new Error('Enter a valid HTTP or HTTPS site');
+  if (sourceOrigin.startsWith('https://') && !targetOrigin.startsWith('https://')) {
+    throw new Error('An HTTPS guide cannot be mapped to an insecure HTTP site');
+  }
+  const guide = await db.guides.get(id);
+  if (!guide) throw new Error('Guide not found');
+  const steps = await db.steps.where('guideId').equals(id).toArray();
+  const recordedOrigins = new Set(
+    steps.map((step) => normalizeHttpOrigin(step.url)).filter((origin): origin is string => Boolean(origin)),
+  );
+  if (!recordedOrigins.has(sourceOrigin)) throw new Error('This site is not used by the guide');
+
+  const guideMeOrigins = { ...(guide.guideMeOrigins ?? {}) };
+  if (sourceOrigin === targetOrigin) delete guideMeOrigins[sourceOrigin];
+  else guideMeOrigins[sourceOrigin] = targetOrigin;
+  await db.guides.update(id, {
+    guideMeOrigins: Object.keys(guideMeOrigins).length ? guideMeOrigins : undefined,
     updatedAt: Date.now(),
   });
   notifyGuidesChanged({ type: 'mutated' });

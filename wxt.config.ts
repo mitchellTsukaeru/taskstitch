@@ -63,8 +63,8 @@ export default defineConfig({
       commands: {
         'toggle-recording': {
           suggested_key: {
-            default: 'Ctrl+Shift+R',
-            mac: 'Command+Shift+R',
+            default: 'Ctrl+Shift+K',
+            mac: 'Command+Shift+K',
           },
           description: 'Start or stop a TaskStitch recording',
         },

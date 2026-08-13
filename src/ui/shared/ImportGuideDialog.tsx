@@ -1,7 +1,9 @@
-import { AlertTriangle, Eye, FileUp, ShieldAlert, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertTriangle, ChevronDown, ExternalLink, Eye, FileUp, Globe2, ShieldAlert, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { getGuideSiteSummaries } from '@/core/guideme/urls';
 import { guideImpact } from '@/core/guides/impact';
 import { importTaskStitchPackage, readTaskStitchFile, type TaskStitchPackage } from '@/core/guides/portable';
+import type { Step } from '@/core/guides/types';
 import { sendMessage } from '@/lib/messaging';
 import { Button } from '@/ui/components/ui/button';
 
@@ -20,6 +22,7 @@ export function ImportGuideDialog({
   const [error, setError] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [sitesOpen, setSitesOpen] = useState(true);
 
   useEffect(() => {
     readTaskStitchFile(file)
@@ -30,6 +33,27 @@ export function ImportGuideDialog({
   }, [file]);
 
   const impact = guideImpact(portable?.guide.impact);
+  const sites = useMemo(
+    () =>
+      portable
+        ? getGuideSiteSummaries(
+            portable.steps.map(
+              (step, index) =>
+                ({
+                  id: `preview-${index}`,
+                  guideId: 'preview',
+                  index,
+                  description: step.description,
+                  action: step.action,
+                  url: step.url,
+                  timestamp: 0,
+                }) satisfies Step,
+            ),
+            portable.guide.guideMeOrigins,
+          )
+        : [],
+    [portable],
+  );
   const requiresConfirmation = portable?.guide.impact !== 'read_only';
   const Icon = impact.tone === 'danger' ? ShieldAlert : impact.tone === 'safe' ? Eye : AlertTriangle;
   const toneClass =
@@ -90,6 +114,36 @@ export function ImportGuideDialog({
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   {portable.steps.length} steps · Package version {portable.version}
                 </p>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border">
+                <button
+                  type="button"
+                  aria-expanded={sitesOpen}
+                  onClick={() => setSitesOpen((open) => !open)}
+                  className="flex min-h-11 w-full items-center gap-2 px-3 text-left text-xs font-bold text-foreground hover:bg-secondary/40"
+                >
+                  <Globe2 size={14} className="text-accent" /> Sites this guide will visit
+                  <span className="font-normal text-muted-foreground">{sites.length} sites</span>
+                  <ChevronDown size={14} className={`ml-auto transition-transform ${sitesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {sitesOpen && (
+                  <div className="space-y-1 border-t border-border p-2">
+                    {sites.map((site, index) => (
+                      <div key={site.sourceOrigin} className="rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                          {index === 0 ? <Globe2 size={13} /> : <ExternalLink size={13} />}
+                          <span className="truncate">{new URL(site.targetOrigin).hostname}</span>
+                          <span className={`ml-auto shrink-0 text-[9px] ${index ? 'text-amber-700' : 'text-success'}`}>
+                            {site.mapped ? 'Changed from recorded site' : index ? 'External site' : 'Primary site'}
+                          </span>
+                        </div>
+                        <p className="ml-5 mt-1 break-all font-mono text-[9px] text-muted-foreground">
+                          {site.startUrl}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className={`rounded-xl border p-4 ${toneClass}`}>
                 <div className="flex items-center gap-2 text-xs font-bold">

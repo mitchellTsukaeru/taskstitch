@@ -81,7 +81,7 @@ Clica, digita, navega. O TaskStitch vê tudo. Cada ação relevante vira um pass
 
 A fusão inteligente de eventos descarta os cliques rápidos em elementos próximos, pra teus guias ficarem limpos. A interceptação do clique acontece *antes* da página mudar, então nada se perde em SPAs nem em recarregamentos completos.
 
-Inicia ou para a gravação de qualquer lugar com <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>, ou <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> no macOS.
+Inicia ou para a gravação de qualquer lugar com <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd>, ou <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> no macOS.
 
 Pausa a gravação, troca para outro site HTTP ou HTTPS e retoma para documentar fluxos multi-plataforma num único guia. O TaskStitch segue a aba ativa, preserva a URL de origem e rejeita eventos atrasados de abas anteriores.
 

@@ -1,5 +1,5 @@
 import type { JSONContent } from '@tiptap/core';
-import { Languages, Play, Sparkles } from 'lucide-react';
+import { Languages, Play, Route, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TypeAnimation } from 'react-type-animation';
 import { i18n } from '#imports';
@@ -15,10 +15,10 @@ import {
 } from '@/core/guides/service';
 import type { Guide, Screenshot, Step } from '@/core/guides/types';
 import { openSidebar } from '@/lib/browser-api';
-import { sendMessage } from '@/lib/messaging';
 import { formatDate, getMostCommonDomain } from '@/lib/utils';
 import { useFullview } from '@/stores/fullview';
 import FaviconImg from '@/ui/shared/FaviconImg';
+import { GuideDestinationDialog } from '@/ui/shared/GuideDestinationDialog';
 import { GuideImpactBadge, GuideImpactDialog } from '@/ui/shared/GuideImpact';
 import { GuideMeStartDialog } from '@/ui/shared/GuideMeStartDialog';
 import { ImproveGuideDialog } from '@/ui/shared/ImproveGuideDialog';
@@ -57,6 +57,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
   const [improving, setImproving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [guideMeWarning, setGuideMeWarning] = useState(false);
+  const [destinationEditing, setDestinationEditing] = useState(false);
   const titleRef = useRef('');
 
   const loadGuide = useCallback(async () => {
@@ -215,6 +216,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
       {guideMeWarning && (
         <GuideMeStartDialog
           guide={data.guide}
+          steps={data.steps}
           onClose={() => setGuideMeWarning(false)}
           onClassify={() => {
             setGuideMeWarning(false);
@@ -224,6 +226,16 @@ export default function GuideContent({ guideId }: GuideContentProps) {
           onStarted={() => {
             setGuideMeWarning(false);
           }}
+        />
+      )}
+      {destinationEditing && (
+        <GuideDestinationDialog
+          guide={data.guide}
+          steps={data.steps}
+          onClose={() => setDestinationEditing(false)}
+          onSaved={(guideMeOrigins) =>
+            setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, guideMeOrigins } } : prev))
+          }
         />
       )}
       {guideImpactOpen && (
@@ -310,6 +322,14 @@ export default function GuideContent({ guideId }: GuideContentProps) {
         <GuideImpactBadge impact={data.guide.impact} onClick={() => setGuideImpactOpen(true)} />
         {data.steps.length > 0 && (
           <button
+            onClick={() => setDestinationEditing(true)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:bg-border/60"
+          >
+            <Route size={11} /> Guide Me links
+          </button>
+        )}
+        {data.steps.length > 0 && (
+          <button
             onClick={() => setTranslating(true)}
             className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:bg-border/60"
           >
@@ -327,14 +347,7 @@ export default function GuideContent({ guideId }: GuideContentProps) {
         {data.steps.length > 0 && (
           <button
             onClick={() => {
-              if ((data.guide.impact ?? 'unknown') !== 'read_only') {
-                setGuideMeWarning(true);
-                return;
-              }
-              openSidebar();
-              void sendMessage('startGuideMe', { guideId }).then((result) => {
-                if (!result.started && result.confirmationRequired) setGuideMeWarning(true);
-              });
+              setGuideMeWarning(true);
             }}
             className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-3 py-0.5 rounded-full transition-colors"
           >

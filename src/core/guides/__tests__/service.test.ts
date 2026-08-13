@@ -42,6 +42,7 @@ import {
   softDeleteGuide,
   toggleStar,
   updateGuideDefaultTitle,
+  updateGuideOriginMapping,
   updateGuideTitle,
   updateScreenshotBlob,
   updateStepRichDescription,
@@ -121,6 +122,39 @@ describe('deterministic titles', () => {
     await updateGuideTitle('g1', 'My account setup');
     await updateGuideDefaultTitle('g1', 'Multi-site guide');
     expect(await db.guides.get('g1')).toMatchObject({ title: 'My account setup', titleEdited: true });
+  });
+});
+
+describe('Guide Me destination mappings', () => {
+  it('stores only origin changes for sites recorded in the guide', async () => {
+    await seedGuide('g1', { stepIds: ['s1'] });
+    await db.steps.add(makeStep({ id: 's1', guideId: 'g1', url: 'https://stg.example.com/customers/new' }));
+
+    await updateGuideOriginMapping('g1', 'https://stg.example.com/path', 'https://example.com/another-path');
+    expect((await db.guides.get('g1'))?.guideMeOrigins).toEqual({
+      'https://stg.example.com': 'https://example.com',
+    });
+
+    await updateGuideOriginMapping('g1', 'https://stg.example.com', 'https://stg.example.com');
+    expect((await db.guides.get('g1'))?.guideMeOrigins).toBeUndefined();
+  });
+
+  it('rejects mappings for sites not used by the guide', async () => {
+    await seedGuide('g1', { stepIds: ['s1'] });
+    await db.steps.add(makeStep({ id: 's1', guideId: 'g1', url: 'https://example.com' }));
+
+    await expect(updateGuideOriginMapping('g1', 'https://other.example.com', 'https://example.com')).rejects.toThrow(
+      'not used',
+    );
+  });
+
+  it('rejects HTTPS to HTTP destination downgrades', async () => {
+    await seedGuide('g1', { stepIds: ['s1'] });
+    await db.steps.add(makeStep({ id: 's1', guideId: 'g1', url: 'https://secure.example.com' }));
+
+    await expect(
+      updateGuideOriginMapping('g1', 'https://secure.example.com', 'http://insecure.example.com'),
+    ).rejects.toThrow('insecure HTTP');
   });
 });
 

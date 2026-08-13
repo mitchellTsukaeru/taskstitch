@@ -1,5 +1,5 @@
 import type { JSONContent } from '@tiptap/core';
-import { ArrowLeft, Languages, Layers, Maximize2, Play, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, Languages, Layers, Maximize2, Play, Plus, Route, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { i18n } from '#imports';
 import {
@@ -14,11 +14,11 @@ import {
 } from '@/core/guides/service';
 import type { Guide, Screenshot, Step } from '@/core/guides/types';
 import { createTab, focusWindow, getExtensionURL, queryTabs, updateTab } from '@/lib/browser-api';
-import { sendMessage } from '@/lib/messaging';
 import { getMostCommonDomain } from '@/lib/utils';
 import { Input } from '@/ui/components/ui/input';
 import EmptyGuideState from '@/ui/shared/EmptyGuideState';
 import FaviconImg from '@/ui/shared/FaviconImg';
+import { GuideDestinationDialog } from '@/ui/shared/GuideDestinationDialog';
 import { GuideImpactBadge, GuideImpactDialog } from '@/ui/shared/GuideImpact';
 import { GuideMeStartDialog } from '@/ui/shared/GuideMeStartDialog';
 import { ImproveGuideDialog } from '@/ui/shared/ImproveGuideDialog';
@@ -52,6 +52,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
   const [improving, setImproving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [guideMeWarning, setGuideMeWarning] = useState(false);
+  const [destinationEditing, setDestinationEditing] = useState(false);
   const [impactEditing, setImpactEditing] = useState(false);
   const persistedTitleRef = useRef('');
 
@@ -190,6 +191,7 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
       {guideMeWarning && (
         <GuideMeStartDialog
           guide={data.guide}
+          steps={data.steps}
           onClose={() => setGuideMeWarning(false)}
           onClassify={() => {
             setGuideMeWarning(false);
@@ -199,6 +201,16 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
             setGuideMeWarning(false);
             onGuideMe?.(guideId);
           }}
+        />
+      )}
+      {destinationEditing && (
+        <GuideDestinationDialog
+          guide={data.guide}
+          steps={data.steps}
+          onClose={() => setDestinationEditing(false)}
+          onSaved={(guideMeOrigins) =>
+            setData((prev) => (prev ? { ...prev, guide: { ...prev.guide, guideMeOrigins } } : prev))
+          }
         />
       )}
       {impactEditing && (
@@ -267,14 +279,16 @@ export default function GuideEditor({ guideId, onBack, onGuideMe }: GuideEditorP
           )}
           {data.steps.length > 0 && (
             <button
-              onClick={async () => {
-                if ((data.guide.impact ?? 'unknown') !== 'read_only') {
-                  setGuideMeWarning(true);
-                  return;
-                }
-                const result = await sendMessage('startGuideMe', { guideId });
-                if (result.started) onGuideMe?.(guideId);
-              }}
+              onClick={() => setDestinationEditing(true)}
+              className="shrink-0 rounded-md p-1.5 text-purple transition-colors hover:bg-secondary hover:text-accent"
+              title="Edit Guide Me destinations"
+            >
+              <Route size={15} />
+            </button>
+          )}
+          {data.steps.length > 0 && (
+            <button
+              onClick={() => setGuideMeWarning(true)}
               className="shrink-0 p-1.5 rounded-md transition-colors text-purple hover:text-accent hover:bg-secondary"
               title={i18n.t('editor.guideMe')}
             >

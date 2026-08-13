@@ -172,10 +172,7 @@ export default function App() {
       <GuideMeCompletion
         guideId={view.guideId}
         onDone={() => setView({ name: 'library' })}
-        onRunAgain={async (id) => {
-          await sendMessage('startGuideMe', { guideId: id, confirmedImpact: true });
-          setView({ name: 'guideme', guideId: id });
-        }}
+        onRunAgain={(id) => setView({ name: 'guideme', guideId: id })}
       />
     );
   }

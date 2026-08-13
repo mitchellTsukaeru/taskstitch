@@ -14,7 +14,10 @@ export interface Guide {
   impact?: GuideImpact;
   impactNote?: string;
   importedAt?: number;
+  guideMeOrigins?: GuideOriginMappings;
 }
+
+export type GuideOriginMappings = Record<string, string>;
 
 export type GuideImpact = 'read_only' | 'makes_changes' | 'destructive' | 'unknown';
 

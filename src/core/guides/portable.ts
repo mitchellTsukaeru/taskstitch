@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/core';
 import { blobToBase64 } from '@/core/export/utils';
+import { sanitizeGuideOriginMappings } from '@/core/guideme/urls';
 import { saveImportedGuide } from './service';
 import type { ElementMeta, Guide, GuideImpact, Screenshot, ScreenshotBounds, Step } from './types';
 
@@ -37,6 +38,7 @@ export interface TaskStitchPackage {
     language?: string;
     impact: GuideImpact;
     impactNote?: string;
+    guideMeOrigins?: Guide['guideMeOrigins'];
   };
   steps: PortableStep[];
 }
@@ -140,6 +142,7 @@ export async function createTaskStitchPackage(
       language: guide.language,
       impact,
       impactNote: impactNote?.trim().slice(0, 500) || undefined,
+      guideMeOrigins: guide.guideMeOrigins,
     },
     steps: await Promise.all(
       steps.map(async (step) => {
@@ -239,6 +242,7 @@ export function parseTaskStitchPackage(value: unknown): TaskStitchPackage {
       language: safeString(input.guide.language, 30) || undefined,
       impact,
       impactNote: safeString(input.guide.impactNote, 500) || undefined,
+      guideMeOrigins: sanitizeGuideOriginMappings(input.guide.guideMeOrigins),
     },
     steps,
   };
@@ -308,6 +312,7 @@ export async function importTaskStitchPackage(portable: TaskStitchPackage): Prom
     language: portable.guide.language,
     impact: portable.guide.impact,
     impactNote: portable.guide.impactNote,
+    guideMeOrigins: portable.guide.guideMeOrigins,
     importedAt: now,
   };
   await saveImportedGuide(guide, steps, screenshots);

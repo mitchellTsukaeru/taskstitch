@@ -111,6 +111,7 @@ export async function completeTranslationJob(jobId: string): Promise<string> {
     language: job.targetLanguage,
     impact: job.sourceGuide.impact ?? 'unknown',
     impactNote: job.sourceGuide.impactNote,
+    guideMeOrigins: job.sourceGuide.guideMeOrigins,
   };
 
   await db.transaction('rw', db.guides, db.steps, db.translationJobs, async () => {

@@ -84,7 +84,7 @@ Click, type, navigate. TaskStitch watches it all. Every meaningful action become
 
 Smart event merging deduplicates rapid clicks on nearby elements, so your guides stay clean. Click interception fires *before* the page navigates away, so nothing gets lost during SPAs or full page loads.
 
-Start or stop recording from anywhere with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>, or <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS.
+Start or stop recording from anywhere with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd>, or <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> on macOS.
 
 Pause a recording, switch to another HTTP or HTTPS website, and resume to document multi-platform workflows as one ordered guide. TaskStitch follows the active tab, preserves each step's source URL, and rejects late events from tabs that are no longer being recorded. Unsupported browser, extension, and store pages pause capture safely.
 

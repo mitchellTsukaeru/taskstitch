@@ -81,7 +81,7 @@ Tu cliques, tu tapes, tu navigues. TaskStitch voit tout. Chaque action utile dev
 
 La fusion intelligente des événements écarte les clics rapprochés sur des éléments proches, pour garder tes guides propres. L'interception du clic se fait *avant* que la page ne change, donc rien ne se perd dans les SPA ou les rechargements complets.
 
-Démarre ou arrête l'enregistrement depuis n'importe où avec <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>, ou <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> sous macOS.
+Démarre ou arrête l'enregistrement depuis n'importe où avec <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd>, ou <kbd>Command</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> sous macOS.
 
 Mets l'enregistrement en pause, passe sur un autre site HTTP ou HTTPS, puis reprends pour documenter un flux multi-plateforme dans un seul guide. TaskStitch suit l'onglet actif, conserve l'URL source et rejette les événements tardifs des anciens onglets.
 

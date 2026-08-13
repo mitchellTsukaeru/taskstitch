@@ -9,6 +9,7 @@ import {
   getSession,
   startSession,
 } from '@/core/guideme/session';
+import { resolveGuideMeStep } from '@/core/guideme/urls';
 import { createGuide, getGuide, getStepsForGuide, updateGuideDefaultTitle } from '@/core/guides/service';
 import { registerTranslationRunner, retryTranslation, startTranslation } from '@/core/translation/runner';
 import { getActiveTab, localStorage, sendMessageToTab, setSidePanelBehavior, updateTab } from '@/lib/browser-api';
@@ -281,7 +282,7 @@ export default defineBackground(() => {
     const steps = guideData.steps;
     if (steps.length === 0) return { started: false, error: 'No steps' };
 
-    const firstStep = steps[0];
+    const firstStep = resolveGuideMeStep(steps[0], guideData.guide.guideMeOrigins);
 
     const activeTab = await getActiveTab();
     await startSession(data.guideId, steps.length, firstStep);
@@ -306,7 +307,9 @@ export default defineBackground(() => {
       return { advanced: false };
     }
 
-    const steps = await getStepsForGuide(session.guideId);
+    const guideData = await getGuide(session.guideId);
+    if (!guideData) return { advanced: false };
+    const steps = guideData.steps;
     const nextIndex = session.activeStepIndex + 1;
 
     if (nextIndex >= steps.length) {
@@ -314,7 +317,9 @@ export default defineBackground(() => {
       return { advanced: true, completed: true, activeStepIndex: nextIndex };
     }
 
-    const nextStep = steps[nextIndex];
+    const nextStep = steps[nextIndex]
+      ? resolveGuideMeStep(steps[nextIndex], guideData.guide.guideMeOrigins)
+      : undefined;
     if (!nextStep) {
       await completeSession();
       return { advanced: true, completed: true, activeStepIndex: nextIndex };
@@ -349,9 +354,13 @@ export default defineBackground(() => {
     const session = sessionData.guideMeSession as { guideId: string } | undefined;
     if (!session) return { moved: false };
 
-    const steps = await getStepsForGuide(session.guideId);
+    const guideData = await getGuide(session.guideId);
+    if (!guideData) return { moved: false };
+    const steps = guideData.steps;
     const prevIndex = data.stepIndex - 1;
-    const prevStep = steps[prevIndex];
+    const prevStep = steps[prevIndex]
+      ? resolveGuideMeStep(steps[prevIndex], guideData.guide.guideMeOrigins)
+      : undefined;
     if (!prevStep) return { moved: false };
     await advanceSession(prevStep, prevIndex);
 

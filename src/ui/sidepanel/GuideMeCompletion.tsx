@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { i18n } from '#imports';
-import { getStepsForGuide } from '@/core/guides/service';
-import type { Step } from '@/core/guides/types';
+import { getGuide } from '@/core/guides/service';
+import type { Guide, Step } from '@/core/guides/types';
 import MascotIcon from '@/ui/fullview/components/MascotIcon';
+import { GuideMeStartDialog } from '@/ui/shared/GuideMeStartDialog';
 
 interface GuideMeCompletionProps {
   guideId: string;
@@ -24,13 +25,30 @@ function CheckIcon() {
 
 export default function GuideMeCompletion({ guideId, onDone, onRunAgain }: GuideMeCompletionProps) {
   const [steps, setSteps] = useState<Step[]>([]);
+  const [guide, setGuide] = useState<Guide>();
+  const [startingAgain, setStartingAgain] = useState(false);
 
   useEffect(() => {
-    getStepsForGuide(guideId).then(setSteps);
+    getGuide(guideId).then((result) => {
+      if (!result) return;
+      setGuide(result.guide);
+      setSteps(result.steps);
+    });
   }, [guideId]);
 
   return (
     <div className="min-h-screen bg-card flex flex-col px-7">
+      {startingAgain && guide && (
+        <GuideMeStartDialog
+          guide={guide}
+          steps={steps}
+          onClose={() => setStartingAgain(false)}
+          onStarted={() => {
+            setStartingAgain(false);
+            onRunAgain(guideId);
+          }}
+        />
+      )}
       <div className="flex flex-col items-center text-center pt-10 pb-4">
         <CoolMascot />
         <h1 className="text-[22px] font-[800] text-foreground mb-2">{i18n.t('guidemeCompletion.title')}</h1>
@@ -60,7 +78,7 @@ export default function GuideMeCompletion({ guideId, onDone, onRunAgain }: Guide
           {i18n.t('guidemeCompletion.allDone')}
         </button>
         <button
-          onClick={() => onRunAgain(guideId)}
+          onClick={() => setStartingAgain(true)}
           className="flex-1 py-3.5 rounded-lg font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           {i18n.t('guidemeCompletion.runAgain')}

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { browser, i18n } from '#imports';
 import type { GuideMeSession } from '@/core/guideme/session';
 import { SESSION_KEY } from '@/core/guideme/session';
+import { resolveGuideMeStep } from '@/core/guideme/urls';
 import { getGuide } from '@/core/guides/service';
 import type { Guide, Screenshot, Step } from '@/core/guides/types';
 import { sendMessage } from '@/lib/messaging';
@@ -120,7 +121,8 @@ export default function GuideMeView({ guideId, onExit, onComplete }: GuideMeView
     };
   }, []);
 
-  const viewedStep = data?.steps[viewedStepIndex] ?? null;
+  const recordedStep = data?.steps[viewedStepIndex] ?? null;
+  const viewedStep = recordedStep ? resolveGuideMeStep(recordedStep, data?.guide.guideMeOrigins) : null;
   const viewedScreenshot = viewedStep ? data?.screenshots.get(viewedStep.id) : undefined;
 
   const highlightStyle = getGuideMeHighlightStyle(viewedStep, viewedScreenshot);
