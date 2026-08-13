@@ -21,6 +21,7 @@ import { Input } from '@/ui/components/ui/input';
 import MascotIcon from '@/ui/fullview/components/MascotIcon';
 import { ImportGuideDialog } from '@/ui/shared/ImportGuideDialog';
 import SettingsView from '@/ui/shared/SettingsView';
+import { TaskStitchDropTarget } from '@/ui/shared/TaskStitchDropTarget';
 import GuideEditor from './GuideEditor';
 import GuideMeCompletion from './GuideMeCompletion';
 import GuideMeView from './GuideMeView';
@@ -194,7 +195,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-card flex flex-col">
+    <TaskStitchDropTarget className="relative min-h-screen bg-card flex flex-col" onFile={setImportFile}>
       {importFile && (
         <ImportGuideDialog
           file={importFile}
@@ -299,6 +300,6 @@ export default function App() {
           searchQuery={search}
         />
       </div>
-    </div>
+    </TaskStitchDropTarget>
   );
 }

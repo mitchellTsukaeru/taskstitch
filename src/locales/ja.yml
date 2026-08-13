@@ -43,6 +43,12 @@ library:
   deletePermanently: 完全に削除
   openInFullView: 全画面表示で開く
 
+importGuide:
+  dropTitle: .taskstitch ガイドをドロップ
+  dropSubtitle: ドロップしてインタラクティブガイドを確認・インポート
+  dropOneFile: ガイドは1つずつドロップしてください。
+  dropTaskStitchFile: .taskstitch インタラクティブガイドファイルをドロップしてください。
+
 guideme:
   live: ライブ
   stepOf: "$1 / $2 ステップ"
