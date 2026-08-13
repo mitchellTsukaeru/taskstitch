@@ -83,4 +83,38 @@ describe('InputSession', () => {
       inputValue: 'Test Group',
     });
   });
+
+  it('captures a password-field step without sending the password value', async () => {
+    const capture = deferred<{ stepId: string }>();
+    mocks.sendMessage.mockImplementation((message: string) => {
+      if (message === 'captureStep') return capture.promise;
+      return Promise.resolve({ updated: true });
+    });
+    const input = createInput();
+    input.type = 'password';
+    input.placeholder = 'Account password';
+    input.value = 'secret';
+    const session = new InputSession('guide-1');
+
+    const starting = session.start(input);
+    session.update(input);
+    capture.resolve({ stepId: 'step-1' });
+    await starting;
+    await session.finalize();
+
+    const update = mocks.sendMessage.mock.calls[1];
+    expect(update).toEqual([
+      'updateInputStep',
+      expect.objectContaining({
+        stepId: 'step-1',
+        description: 'Enter a password in Account password',
+      }),
+    ]);
+    expect(update[1]).not.toHaveProperty('inputValue');
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      'finalizeInputStep',
+      expect.objectContaining({ stepId: 'step-1' }),
+    );
+    expect(JSON.stringify(mocks.sendMessage.mock.calls)).not.toContain('secret');
+  });
 });

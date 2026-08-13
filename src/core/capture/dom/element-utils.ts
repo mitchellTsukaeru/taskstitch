@@ -29,6 +29,10 @@ export function isTextField(el: Element): boolean {
   return el instanceof HTMLTextAreaElement || (el instanceof HTMLElement && el.isContentEditable);
 }
 
+export function isPasswordField(el: Element): boolean {
+  return el instanceof HTMLInputElement && el.type === 'password';
+}
+
 export function isNavigatingClick(el: HTMLElement): boolean {
   const anchor = el.closest('a[href]');
   if (!anchor) return false;

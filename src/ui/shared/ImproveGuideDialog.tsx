@@ -6,6 +6,7 @@ import { applyGuideImprovements, getGuide } from '@/core/guides/service';
 import { localStorage } from '@/lib/browser-api';
 import { sendMessage } from '@/lib/messaging';
 import { Button } from '@/ui/components/ui/button';
+import { GuideProgressScreen } from './GuideProgressScreen';
 
 export function ImproveGuideDialog({
   guideId,
@@ -56,6 +57,8 @@ export function ImproveGuideDialog({
       setLoading(false);
     }
   }
+
+  if (loading) return <GuideProgressScreen />;
 
   return (
     <div className="fixed inset-0 z-50 bg-deep/40 backdrop-blur-[2px] flex items-center justify-center p-4">
@@ -111,9 +114,7 @@ export function ImproveGuideDialog({
                     Retry text only
                   </Button>
                 )}
-                <Button disabled={loading} onClick={() => requestProposal(includeScreenshots)}>
-                  {loading ? 'Analysing…' : 'Generate suggestions'}
-                </Button>
+                <Button onClick={() => requestProposal(includeScreenshots)}>Generate suggestions</Button>
               </div>
             </div>
           ) : (

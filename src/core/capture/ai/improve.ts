@@ -101,11 +101,7 @@ function parseProposal(
   eligible: Step[],
   screenshotsSent: number,
 ): GuideImprovementProposal {
-  const cleaned = text
-    .trim()
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/, '');
-  const parsed = JSON.parse(cleaned) as { title?: unknown; descriptions?: unknown };
+  const parsed = parseProposalJson(text);
   const eligibleById = new Map(eligible.map((step) => [step.id, step]));
   const descriptions: GuideImprovementProposal['descriptions'] = [];
   if (Array.isArray(parsed.descriptions)) {
@@ -128,6 +124,50 @@ function parseProposal(
     descriptions,
     screenshotsSent,
   };
+}
+
+function parseProposalJson(text: string): { title?: unknown; descriptions?: unknown } {
+  const candidates: string[] = [];
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index];
+    if (start < 0) {
+      if (character === '{') {
+        start = index;
+        depth = 1;
+      }
+      continue;
+    }
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === '{') depth++;
+    else if (character === '}') {
+      depth--;
+      if (depth === 0) {
+        candidates.push(text.slice(start, index + 1));
+        start = -1;
+      }
+    }
+  }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as { title?: unknown; descriptions?: unknown };
+      if (parsed && typeof parsed === 'object' && ('title' in parsed || 'descriptions' in parsed)) return parsed;
+    } catch {
+      // Continue past prose or reasoning blocks that happen to contain braces.
+    }
+  }
+  throw new Error('AI returned an invalid improvement response');
 }
 
 export async function improveGuide(
@@ -163,7 +203,9 @@ export async function improveGuide(
       settings.baseUrl,
     ),
     messages: [{ role: 'user', content }],
-    maxOutputTokens: Math.min(2000, 150 + eligible.length * 45),
+    // GLM thinking models can consume a small completion budget before emitting
+    // their JSON answer. Keep enough headroom while retaining a bounded request.
+    maxOutputTokens: Math.min(4_000, Math.max(2_000, 150 + eligible.length * 45)),
   });
   return parseProposal(text, guide, eligible, visualSteps.length);
 }

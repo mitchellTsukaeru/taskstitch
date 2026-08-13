@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { sendMessage } from '@/lib/messaging';
 import { extractDOMContext } from '../dom/context';
 import { extractElementMeta } from '../dom/element-meta';
-import { getFieldLabel, getFieldValue } from '../dom/element-utils';
+import { getFieldLabel, getFieldValue, isPasswordField } from '../dom/element-utils';
 
 export class InputSession {
   stepId: string | null = null;
@@ -63,6 +63,15 @@ export class InputSession {
 
   update(target: HTMLElement) {
     if (this.target !== target) return;
+    if (isPasswordField(target)) {
+      const description = `Enter a password in ${getFieldLabel(target)}`;
+      if (!this.stepId) {
+        this.pendingUpdate = { description };
+        return;
+      }
+      this.sendUpdate(description);
+      return;
+    }
     const val = getFieldValue(target);
     const desc = val ? `Type "${val}" in ${getFieldLabel(target)}` : `Clear ${getFieldLabel(target)}`;
     if (!this.stepId) {
@@ -79,7 +88,7 @@ export class InputSession {
       captureToken: this.captureToken,
       stepId: this.stepId,
       description,
-      inputValue,
+      ...(inputValue === undefined ? {} : { inputValue }),
     }).catch((err) => logger.warn('Failed to update input step', err));
   }
 
