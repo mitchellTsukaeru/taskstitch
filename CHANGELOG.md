@@ -2,7 +2,50 @@
 
 All notable changes to this project are documented here.
 
-## 1.2.0 - Unreleased
+## 1.4.0 - 2026-08-14
+
+### Added
+
+- Added site-level Guide Me destinations so guides recorded on one site can run on a mapped destination while preserving their start path.
+- Added destination-impact previews and controls in the full view, side panel, import flow, and Guide Me start dialog.
+- Added drag-and-drop `.taskstitch` guide import from the library and side panel.
+- Added a dedicated progress screen for AI-powered guide improvement.
+
+### Changed
+
+- Improved recording-start notifications and destination-aware Guide Me messaging.
+- Preserved destination mappings through portable export, import, translation, and guide updates.
+
+### Fixed
+
+- Fixed AI guide improvement request handling and input-session behavior.
+- Fixed Guide Me completion and replay behavior when a guide uses a mapped destination.
+
+## 1.3.0 - 2026-08-12
+
+### Added
+
+- Added an export menu to the full library view.
+- Added selectable interface languages for English, French, Japanese, Spanish, and Brazilian Portuguese.
+- Added a visible safety classification for exported interactive guides.
+
+### Changed
+
+- Kept edited guide text synchronized across interactive exports and localized user interfaces.
+- Updated the recording shortcut to `Ctrl+Shift+K` on Windows and Linux and `Command+Shift+K` on macOS.
+
+### Fixed
+
+- Fixed Guide Me next-step advancement, replay highlighting, and session recovery.
+- Kept clicked controls visible in captured screenshots.
+- Prevented the recording overlay from blocking page transitions.
+
+## 1.2.0 - 2026-08-06
+
+### Added
+
+- Added Japanese interface localization.
+- Added translated, portable interactive guide export and import.
 
 ### Changed
 
