@@ -1,4 +1,5 @@
 import { i18n } from '#imports';
+import { renderScreenshotVariants } from '@/core/export/screenshot-renderer';
 import { blobToBase64, extractDomain, formatDate } from '@/core/export/utils';
 import { guideImpact } from '@/core/guides/impact';
 import { taskStitchFilename } from '@/core/guides/portable';
@@ -49,8 +50,10 @@ export async function exportGuideAsMarkdown(
 
     const screenshot = screenshots.get(step.id);
     if (screenshot) {
-      const b64 = await blobToBase64(screenshot.blob);
-      lines.push(`![${i18n.t('export.stepLabel', [num])}](data:${screenshot.mimeType};base64,${b64})`, '');
+      const rendered = await renderScreenshotVariants(screenshot, { type: 'image/jpeg', quality: 0.9 });
+      const displayBlob = rendered.croppedBlob ?? rendered.fullBlob;
+      const b64 = await blobToBase64(displayBlob);
+      lines.push(`![${i18n.t('export.stepLabel', [num])}](data:${displayBlob.type};base64,${b64})`, '');
     }
   }
 
