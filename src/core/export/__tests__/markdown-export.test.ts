@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exportGuideAsMarkdown } from '@/core/export/markdown-export';
+import { renderScreenshotVariants } from '@/core/export/screenshot-renderer';
 import type { Guide, Screenshot, Step } from '@/core/guides/types';
+
+vi.mock('@/core/export/screenshot-renderer', () => ({
+  renderScreenshotVariants: vi.fn(),
+}));
 
 function makeGuide(overrides: Partial<Guide> = {}): Guide {
   return {
@@ -41,6 +46,13 @@ function makeScreenshot(stepId: string, content = 'img'): Screenshot {
 }
 
 describe('exportGuideAsMarkdown', () => {
+  beforeEach(() => {
+    vi.mocked(renderScreenshotVariants).mockImplementation(async (screenshot) => ({
+      fullBlob: screenshot.blob,
+      croppedBlob: null,
+    }));
+  });
+
   it('creates valid markdown with H1 title', async () => {
     const guide = makeGuide({ title: 'My Guide' });
     const steps = [makeStep()];
@@ -135,5 +147,23 @@ describe('exportGuideAsMarkdown', () => {
     expect(md).toContain('![export.stepLabel[01]](data:image/png;base64,');
     const b64 = btoa('pixel-data');
     expect(md).toContain(b64);
+  });
+
+  it('embeds the cropped rendered screenshot shown by the guide', async () => {
+    const guide = makeGuide();
+    const step = makeStep();
+    const screenshot = makeScreenshot(step.id, 'original-image');
+    const croppedBlob = new Blob(['cropped-image'], { type: 'image/jpeg' });
+    vi.mocked(renderScreenshotVariants).mockResolvedValue({
+      fullBlob: new Blob(['rendered-full-image'], { type: 'image/jpeg' }),
+      croppedBlob,
+    });
+
+    const md = await exportGuideAsMarkdown(guide, [step], new Map([[step.id, screenshot]]));
+
+    expect(renderScreenshotVariants).toHaveBeenCalledWith(screenshot, { type: 'image/jpeg', quality: 0.9 });
+    expect(md).toContain(`data:image/jpeg;base64,${btoa('cropped-image')}`);
+    expect(md).not.toContain(btoa('original-image'));
+    expect(md).not.toContain(btoa('rendered-full-image'));
   });
 });

@@ -20,6 +20,7 @@ All notable changes to this project are documented here.
 
 - Fixed AI guide improvement request handling and input-session behavior.
 - Fixed Guide Me completion and replay behavior when a guide uses a mapped destination.
+- Made Markdown exports use the same cropped, annotated screenshots shown in the guide.
 
 ## 1.3.0 - 2026-08-12
 
